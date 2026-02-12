@@ -95,7 +95,7 @@ export default function PropositoPage() {
       {/* Valores */}
       <div className="mb-8">
         <h2 className="font-display text-xl font-bold text-gray-900 mb-4 text-center">No que acreditamos</h2>
-        <div className="space-y-3">
+        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
           {valores.map((valor, i) => (
             <motion.div
               key={i}

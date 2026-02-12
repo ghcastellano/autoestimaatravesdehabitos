@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Sparkles, Plus, ChevronRight, Trophy, Target,
   Flame, CalendarDays, Gift, Star, TrendingUp,
-  Heart, MessageCircle
+  Heart, MessageCircle, Loader2
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,30 +14,43 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { BadgeDisplay } from "@/components/ui/badge-display";
 import { getGreeting, getRandomItem } from "@/lib/utils";
 import { MOTIVATIONAL_MESSAGES } from "@/lib/constants/habits";
+import { useAuth, useHabits, useHabitLogs, useStats } from "@/hooks";
 import Link from "next/link";
+
+function getToday(): string {
+  return new Date().toISOString().split("T")[0];
+}
 
 export default function DashboardPage() {
   const greeting = getGreeting();
   const [dailyMessage] = useState(() => getRandomItem(MOTIVATIONAL_MESSAGES.general));
+  const today = getToday();
+  const dayOfWeek = new Date().getDay();
 
-  // Dados simulados para a interface - serao substituidos por dados reais do Supabase
-  const mockData = {
-    userName: "Querida",
-    avatar: null,
-    todayHabits: [
-      { id: "1", name: "Meditacao", icon: "🧘", time: "07:00", duration: 10, completed: true, color: "#0d9488" },
-      { id: "2", name: "Caminhada", icon: "🚶‍♀️", time: "07:30", duration: 30, completed: true, color: "#7a8d64" },
-      { id: "3", name: "Diario de gratidao", icon: "📝", time: "22:00", duration: 10, completed: false, color: "#a855f7" },
-      { id: "4", name: "Leitura", icon: "📚", time: "21:30", duration: 20, completed: false, color: "#f97316" },
-    ],
-    streak: 5,
-    weekProgress: 68,
-    totalBadges: 3,
-    activeChallenges: 1,
-  };
+  const { user, profile, loading: authLoading } = useAuth();
+  const { userHabits, loading: habitsLoading } = useHabits(user?.id);
+  const { logs, loading: logsLoading, toggleCompletion } = useHabitLogs(user?.id);
+  const { streak, weekProgress, todayCompleted, todayTotal } = useStats(userHabits, logs);
 
-  const completedToday = mockData.todayHabits.filter((h) => h.completed).length;
-  const totalToday = mockData.todayHabits.length;
+  const loading = authLoading || habitsLoading || logsLoading;
+
+  // Habits scheduled for today
+  const todayHabits = userHabits.filter((h) => h.preferred_days.includes(dayOfWeek));
+  const todayLogs = logs.filter((l) => l.date === today);
+  const completedIds = new Set(todayLogs.filter((l) => l.status === "completed").map((l) => l.user_habit_id));
+
+  const userName = profile?.full_name || "Querida";
+
+  if (loading) {
+    return (
+      <div className="page-container flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-teal-500 animate-spin mx-auto mb-3" />
+          <p className="text-sm text-gray-500">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container bg-gradient-to-b from-oat-50 via-white to-teal-50/20">
@@ -48,10 +61,10 @@ export default function DashboardPage() {
         className="flex items-center justify-between mb-6"
       >
         <div className="flex items-center gap-3">
-          <Avatar name={mockData.userName} size="md" />
+          <Avatar name={userName} size="md" />
           <div>
             <p className="text-sm text-gray-500">{greeting},</p>
-            <h1 className="font-display text-xl font-bold text-gray-900">{mockData.userName}</h1>
+            <h1 className="font-display text-xl font-bold text-gray-900">{userName}</h1>
           </div>
         </div>
         <Link href="/perfil" className="p-2 rounded-xl glass hover:shadow-glass-lg transition-all">
@@ -86,46 +99,62 @@ export default function DashboardPage() {
       >
         <div className="flex items-center justify-between mb-3">
           <h2 className="section-title">Hoje</h2>
-          <span className="text-sm font-semibold text-teal-600">{completedToday}/{totalToday}</span>
+          <span className="text-sm font-semibold text-teal-600">{todayCompleted}/{todayTotal}</span>
         </div>
         <ProgressBar
-          value={completedToday}
-          max={totalToday}
+          value={todayCompleted}
+          max={todayTotal || 1}
           color="from-teal-400 to-lilac-500"
           size="md"
           className="mb-4"
         />
 
         {/* Lista de habitos do dia */}
-        <div className="space-y-2">
-          {mockData.todayHabits.map((habit, i) => (
-            <motion.div
-              key={habit.id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 + i * 0.05 }}
-            >
-              <Card variant="default" padding="sm">
-                <div className="flex items-center gap-3">
-                  <button
-                    className={habit.completed ? "habit-check-done" : "habit-check"}
-                  >
-                    {habit.completed && <span className="text-xs">✓</span>}
-                  </button>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium ${habit.completed ? "text-gray-400 line-through" : "text-gray-900"}`}>
-                      {habit.icon} {habit.name}
-                    </p>
-                    <p className="text-xs text-gray-400">{habit.time} · {habit.duration} min</p>
-                  </div>
-                  {habit.completed && (
-                    <span className="badge-teal text-[10px]">Feito!</span>
-                  )}
-                </div>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+        {todayHabits.length > 0 ? (
+          <div className="space-y-2">
+            {todayHabits.map((habit, i) => {
+              const completed = completedIds.has(habit.id);
+              const template = habit.template;
+              const name = habit.custom_name || template?.name || "Habito";
+
+              return (
+                <motion.div
+                  key={habit.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 + i * 0.05 }}
+                >
+                  <Card variant="default" padding="sm">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => toggleCompletion(habit.id, today)}
+                        className={completed ? "habit-check-done" : "habit-check"}
+                      >
+                        {completed && <span className="text-xs">✓</span>}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-medium ${completed ? "text-gray-400 line-through" : "text-gray-900"}`}>
+                          {name}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {habit.preferred_time?.slice(0, 5)} · {habit.duration_minutes} min
+                        </p>
+                      </div>
+                      {completed && (
+                        <span className="badge-teal text-[10px]">Feito!</span>
+                      )}
+                    </div>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        ) : (
+          <Card variant="default" padding="lg" className="text-center">
+            <p className="text-sm text-gray-500 mb-2">Voce ainda nao tem habitos para hoje</p>
+            <p className="text-xs text-gray-400">Explore habitos recomendados e adicione os que fizerem sentido para voce</p>
+          </Card>
+        )}
 
         <Link href="/habitos">
           <Button variant="outline" size="sm" fullWidth className="mt-3">
@@ -140,14 +169,14 @@ export default function DashboardPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="grid grid-cols-2 gap-3 mb-6"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-6"
       >
         <Card variant="default" padding="md" className="glass-teal">
           <div className="flex items-center gap-2 mb-2">
             <Flame className="w-5 h-5 text-peach-500" />
             <span className="text-xs font-medium text-gray-500">Sequencia</span>
           </div>
-          <p className="font-display text-2xl font-bold text-gray-900">{mockData.streak} <span className="text-sm font-normal text-gray-500">dias</span></p>
+          <p className="font-display text-2xl font-bold text-gray-900">{streak} <span className="text-sm font-normal text-gray-500">dias</span></p>
         </Card>
 
         <Card variant="default" padding="md" className="glass-lilac">
@@ -155,16 +184,16 @@ export default function DashboardPage() {
             <TrendingUp className="w-5 h-5 text-lilac-500" />
             <span className="text-xs font-medium text-gray-500">Semana</span>
           </div>
-          <p className="font-display text-2xl font-bold text-gray-900">{mockData.weekProgress}<span className="text-sm font-normal text-gray-500">%</span></p>
+          <p className="font-display text-2xl font-bold text-gray-900">{weekProgress}<span className="text-sm font-normal text-gray-500">%</span></p>
         </Card>
 
         <Link href="/desafios" className="block">
           <Card variant="default" padding="md" className="glass-peach">
             <div className="flex items-center gap-2 mb-2">
               <Trophy className="w-5 h-5 text-peach-500" />
-              <span className="text-xs font-medium text-gray-500">Desafios</span>
+              <span className="text-xs font-medium text-gray-500">Habitos</span>
             </div>
-            <p className="font-display text-2xl font-bold text-gray-900">{mockData.activeChallenges} <span className="text-sm font-normal text-gray-500">ativo</span></p>
+            <p className="font-display text-2xl font-bold text-gray-900">{userHabits.length} <span className="text-sm font-normal text-gray-500">ativos</span></p>
           </Card>
         </Link>
 
@@ -174,7 +203,7 @@ export default function DashboardPage() {
               <Star className="w-5 h-5 text-oat-500" />
               <span className="text-xs font-medium text-gray-500">Badges</span>
             </div>
-            <p className="font-display text-2xl font-bold text-gray-900">{mockData.totalBadges} <span className="text-sm font-normal text-gray-500">ganhos</span></p>
+            <p className="font-display text-2xl font-bold text-gray-900">- <span className="text-sm font-normal text-gray-500">ganhos</span></p>
           </Card>
         </Link>
       </motion.div>
@@ -184,7 +213,7 @@ export default function DashboardPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="space-y-2"
+        className="space-y-2 lg:grid lg:grid-cols-3 lg:gap-4 lg:space-y-0"
       >
         <Link href="/social">
           <Card variant="default" padding="sm">

@@ -10,7 +10,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-gradient-to-b from-teal-50/50 via-oat-50 to-lilac-50/30 flex flex-col">
       {/* Cabecalho */}
       <header className="px-6 safe-top">
-        <div className="flex items-center justify-between py-4">
+        <div className="flex items-center justify-between py-4 max-w-5xl mx-auto w-full">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-glow-teal">
               <Sparkles className="w-5 h-5 text-white" />
@@ -26,7 +26,7 @@ export default function LandingPage() {
       {/* Hero */}
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <motion.div
-          className="text-center max-w-md"
+          className="text-center max-w-md lg:max-w-2xl"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -39,7 +39,7 @@ export default function LandingPage() {
             <Sparkles className="w-10 h-10 text-white" />
           </motion.div>
 
-          <h1 className="font-display text-4xl font-extrabold text-gray-900 mb-4 leading-tight text-balance">
+          <h1 className="font-display text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4 leading-tight text-balance">
             Sua jornada de{" "}
             <span className="gradient-text">autoestima</span>{" "}
             comeca aqui
@@ -49,14 +49,14 @@ export default function LandingPage() {
             Descubra como pequenos habitos diarios, construidos com carinho e ciencia, podem transformar a forma como voce se ve.
           </p>
 
-          <div className="space-y-3">
-            <Link href="/cadastro">
+          <div className="space-y-3 lg:flex lg:gap-4 lg:space-y-0 lg:justify-center">
+            <Link href="/cadastro" className="block">
               <Button variant="primary" size="lg" fullWidth>
                 Comecar minha jornada
                 <ArrowRight className="w-5 h-5" />
               </Button>
             </Link>
-            <Link href="/login">
+            <Link href="/login" className="block">
               <Button variant="secondary" size="lg" fullWidth>
                 Ja tenho uma conta
               </Button>
@@ -66,7 +66,7 @@ export default function LandingPage() {
 
         {/* Destaques com Liquid Glass */}
         <motion.div
-          className="mt-16 grid grid-cols-3 gap-3 max-w-sm w-full"
+          className="mt-16 grid grid-cols-3 gap-3 max-w-sm lg:max-w-lg w-full"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}

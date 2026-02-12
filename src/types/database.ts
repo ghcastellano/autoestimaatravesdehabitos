@@ -51,6 +51,7 @@ export interface HabitTemplate {
   recommended_duration_minutes: number;
   recommended_frequency_per_week: number;
   best_time_of_day: string;
+  best_time_reason: string;
   scientific_source: string;
   icon: string;
   difficulty: "easy" | "medium" | "hard";

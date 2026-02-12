@@ -97,12 +97,12 @@ export default function CadastroPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col px-6 py-8">
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-8 bg-gradient-to-b from-oat-50 via-white to-teal-50/30">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="flex-1 flex flex-col"
+        className="w-full max-w-md flex flex-col"
       >
         {/* Voltar */}
         <Link href="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-8">

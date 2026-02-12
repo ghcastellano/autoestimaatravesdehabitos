@@ -177,7 +177,8 @@
      PAGINA E SECOES
      ========================================== */
   .page-container {
-    @apply min-h-screen pb-24 px-4 pt-4 max-w-lg mx-auto;
+    @apply min-h-screen pb-24 px-4 pt-4 max-w-lg mx-auto
+      lg:max-w-5xl lg:px-8 lg:pt-8 lg:pb-8;
   }
 
   .section-title {

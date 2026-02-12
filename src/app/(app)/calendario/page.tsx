@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Check, Minus, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Minus, X, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { DAYS_OF_WEEK } from "@/lib/constants/habits";
+import { useAuth, useHabits, useHabitLogs } from "@/hooks";
 
 function getDaysInMonth(year: number, month: number) {
   return new Date(year, month + 1, 0).getDate();
@@ -12,6 +13,10 @@ function getDaysInMonth(year: number, month: number) {
 
 function getFirstDayOfMonth(year: number, month: number) {
   return new Date(year, month, 1).getDay();
+}
+
+function formatDate(year: number, month: number, day: number): string {
+  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 const MONTHS = [
@@ -24,6 +29,16 @@ export default function CalendarioPage() {
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [selectedDate, setSelectedDate] = useState(today.getDate());
+
+  const { user, loading: authLoading } = useAuth();
+  const { userHabits, loading: habitsLoading } = useHabits(user?.id);
+
+  // Fetch logs for the current month
+  const startDate = formatDate(currentYear, currentMonth, 1);
+  const endDate = formatDate(currentYear, currentMonth, getDaysInMonth(currentYear, currentMonth));
+  const { logs, loading: logsLoading } = useHabitLogs(user?.id, startDate, endDate);
+
+  const loading = authLoading || habitsLoading || logsLoading;
 
   const daysInMonth = getDaysInMonth(currentYear, currentMonth);
   const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
@@ -46,38 +61,60 @@ export default function CalendarioPage() {
     }
   };
 
-  // Dados simulados de logs de habitos
-  const habitLogs: Record<number, { name: string; status: "completed" | "partial" | "skipped"; icon: string }[]> = {
-    [today.getDate()]: [
-      { name: "Meditacao", status: "completed", icon: "🧘" },
-      { name: "Caminhada", status: "completed", icon: "🚶‍♀️" },
-      { name: "Diario de gratidao", status: "skipped", icon: "📝" },
-    ],
-    [today.getDate() - 1]: [
-      { name: "Meditacao", status: "completed", icon: "🧘" },
-      { name: "Caminhada", status: "partial", icon: "🚶‍♀️" },
-      { name: "Diario de gratidao", status: "completed", icon: "📝" },
-    ],
-    [today.getDate() - 2]: [
-      { name: "Meditacao", status: "completed", icon: "🧘" },
-      { name: "Caminhada", status: "completed", icon: "🚶‍♀️" },
-      { name: "Diario de gratidao", status: "completed", icon: "📝" },
-    ],
-  };
+  // Group logs by date
+  const logsByDate = useMemo(() => {
+    const map: Record<string, typeof logs> = {};
+    logs.forEach((log) => {
+      if (!map[log.date]) map[log.date] = [];
+      map[log.date].push(log);
+    });
+    return map;
+  }, [logs]);
 
   const getDayStatus = (day: number) => {
-    const logs = habitLogs[day];
-    if (!logs) return null;
-    const allDone = logs.every((l) => l.status === "completed");
-    const someDone = logs.some((l) => l.status === "completed" || l.status === "partial");
-    if (allDone) return "complete";
-    if (someDone) return "partial";
+    const date = formatDate(currentYear, currentMonth, day);
+    const dayLogs = logsByDate[date];
+    if (!dayLogs || dayLogs.length === 0) return null;
+
+    const dayOfWeek = new Date(currentYear, currentMonth, day).getDay();
+    const scheduledHabits = userHabits.filter((h) => h.preferred_days.includes(dayOfWeek));
+    if (scheduledHabits.length === 0) return null;
+
+    const completedCount = dayLogs.filter((l) => l.status === "completed").length;
+    if (completedCount >= scheduledHabits.length) return "complete";
+    if (completedCount > 0) return "partial";
     return "missed";
   };
 
-  const selectedLogs = habitLogs[selectedDate] || [];
+  const selectedDateStr = formatDate(currentYear, currentMonth, selectedDate);
+  const selectedLogs = logsByDate[selectedDateStr] || [];
+
+  // Map logs to habit names
+  const selectedDayHabits = useMemo(() => {
+    const habitMap = new Map(userHabits.map((h) => [h.id, h]));
+    return selectedLogs.map((log) => {
+      const habit = habitMap.get(log.user_habit_id);
+      return {
+        ...log,
+        habitName: habit?.custom_name || habit?.template?.name || "Habito",
+        habitIcon: habit?.icon || "Star",
+      };
+    });
+  }, [selectedLogs, userHabits]);
+
   const isToday = (day: number) =>
     day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear();
+
+  if (loading) {
+    return (
+      <div className="page-container flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-teal-500 animate-spin mx-auto mb-3" />
+          <p className="text-sm text-gray-500">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container bg-gradient-to-b from-oat-50 via-white to-teal-50/20">
@@ -86,7 +123,9 @@ export default function CalendarioPage() {
         <p className="text-sm text-gray-500">Acompanhe seu progresso dia a dia</p>
       </div>
 
+      <div className="lg:grid lg:grid-cols-5 lg:gap-6">
       {/* Calendario */}
+      <div className="lg:col-span-3">
       <Card variant="default" padding="md" className="mb-6">
         {/* Navegacao do mes */}
         <div className="flex items-center justify-between mb-4">
@@ -165,18 +204,19 @@ export default function CalendarioPage() {
           </div>
         </div>
       </Card>
+      </div>
 
       {/* Habitos do dia selecionado */}
-      <div className="mb-4">
+      <div className="lg:col-span-2 mb-4">
         <h3 className="font-display font-semibold text-gray-900 mb-3">
           {isToday(selectedDate) ? "Hoje" : `Dia ${selectedDate}`}
         </h3>
 
-        {selectedLogs.length > 0 ? (
+        {selectedDayHabits.length > 0 ? (
           <div className="space-y-2">
-            {selectedLogs.map((log, i) => (
+            {selectedDayHabits.map((log, i) => (
               <motion.div
-                key={i}
+                key={log.id}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05 }}
@@ -197,7 +237,7 @@ export default function CalendarioPage() {
                       )}
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{log.icon} {log.name}</p>
+                      <p className="text-sm font-medium text-gray-900">{log.habitName}</p>
                     </div>
                     <span className={`text-[10px] font-medium px-2 py-1 rounded-full ${
                       log.status === "completed" ? "bg-teal-100 text-teal-700" :
@@ -216,6 +256,7 @@ export default function CalendarioPage() {
             <p className="text-sm text-gray-500">Nenhum registro para este dia</p>
           </Card>
         )}
+      </div>
       </div>
     </div>
   );

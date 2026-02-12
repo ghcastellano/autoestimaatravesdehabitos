@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,16 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, title, children, className }: ModalProps) {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    setIsDesktop(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -40,15 +50,16 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
             className={cn(
               "fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[90vh] overflow-y-auto",
               "safe-bottom",
+              "lg:bottom-auto lg:left-1/2 lg:top-1/2 lg:right-auto lg:rounded-3xl lg:max-w-lg lg:w-full lg:max-h-[85vh] lg:shadow-glass-xl",
               className
             )}
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            initial={isDesktop ? { opacity: 0, scale: 0.95, x: "-50%", y: "-50%" } : { y: "100%" }}
+            animate={isDesktop ? { opacity: 1, scale: 1, x: "-50%", y: "-50%" } : { y: 0 }}
+            exit={isDesktop ? { opacity: 0, scale: 0.95, x: "-50%", y: "-50%" } : { y: "100%" }}
+            transition={isDesktop ? { duration: 0.2 } : { type: "spring", damping: 30, stiffness: 300 }}
           >
-            <div className="sticky top-0 bg-white/90 backdrop-blur-xl rounded-t-3xl z-10 px-5 pt-3 pb-3 border-b border-gray-100">
-              <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-3" />
+            <div className="sticky top-0 bg-white/90 backdrop-blur-xl rounded-t-3xl lg:rounded-t-3xl z-10 px-5 pt-3 pb-3 border-b border-gray-100">
+              <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-3 lg:hidden" />
               <div className="flex items-center justify-between">
                 {title && <h3 className="text-lg font-bold text-gray-900">{title}</h3>}
                 <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 transition-colors">
