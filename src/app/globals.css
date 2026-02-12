@@ -1,0 +1,254 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --gradient-primary: linear-gradient(135deg, #0d9488 0%, #a855f7 100%);
+    --gradient-warm: linear-gradient(135deg, #fb923c 0%, #f43f5e 100%);
+    --gradient-calm: linear-gradient(135deg, #a855f7 0%, #0d9488 100%);
+    --gradient-nature: linear-gradient(135deg, #7a8d64 0%, #0d9488 100%);
+    --gradient-sunset: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 100%);
+
+    /* Fundo Oat Cream suave */
+    --bg-app: #fefdfb;
+  }
+
+  body {
+    @apply text-gray-900 antialiased;
+    background-color: var(--bg-app);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  * {
+    @apply border-gray-200;
+  }
+}
+
+@layer components {
+  /* ==========================================
+     LIQUID GLASS - Estilo Apple WWDC 2025
+     ========================================== */
+  .glass {
+    @apply bg-white/60 backdrop-blur-2xl border border-white/40 shadow-glass;
+    background: var(--gradient-glass);
+  }
+
+  .glass-teal {
+    @apply backdrop-blur-2xl border border-teal-200/30 shadow-glass;
+    background: linear-gradient(135deg, rgba(240,253,250,0.7) 0%, rgba(204,251,241,0.4) 100%);
+  }
+
+  .glass-lilac {
+    @apply backdrop-blur-2xl border border-lilac-200/30 shadow-glass;
+    background: linear-gradient(135deg, rgba(250,245,255,0.7) 0%, rgba(233,213,255,0.4) 100%);
+  }
+
+  .glass-peach {
+    @apply backdrop-blur-2xl border border-peach-200/30 shadow-glass;
+    background: linear-gradient(135deg, rgba(255,247,237,0.7) 0%, rgba(254,215,170,0.4) 100%);
+  }
+
+  .glass-dark {
+    @apply bg-gray-900/80 backdrop-blur-2xl border border-gray-800/50;
+  }
+
+  /* ==========================================
+     GRADIENTES
+     ========================================== */
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-warm {
+    background: var(--gradient-warm);
+  }
+
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-warm {
+    background: var(--gradient-warm);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ==========================================
+     BOTOES - Liquid Glass
+     ========================================== */
+  .btn-primary {
+    @apply relative overflow-hidden rounded-2xl px-6 py-3.5 text-white font-semibold text-sm
+    transition-all duration-300 ease-out
+    hover:shadow-glow-teal hover:-translate-y-0.5
+    active:translate-y-0 active:shadow-md
+    disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0;
+    background: var(--gradient-primary);
+  }
+
+  .btn-secondary {
+    @apply rounded-2xl px-6 py-3.5 font-semibold text-sm
+    bg-white/60 backdrop-blur-xl text-gray-700 border border-white/40 shadow-glass
+    transition-all duration-300 ease-out
+    hover:bg-white/80 hover:-translate-y-0.5
+    active:translate-y-0;
+  }
+
+  .btn-outline {
+    @apply rounded-2xl px-6 py-3.5 font-semibold text-sm
+    border-2 border-teal-200 text-teal-700
+    transition-all duration-300 ease-out
+    hover:bg-teal-50 hover:border-teal-300 hover:-translate-y-0.5
+    active:translate-y-0;
+  }
+
+  /* ==========================================
+     CARDS - Liquid Glass
+     ========================================== */
+  .card {
+    @apply bg-white/70 backdrop-blur-xl rounded-3xl border border-white/50 shadow-glass
+    transition-all duration-300 ease-out
+    hover:shadow-glass-lg hover:bg-white/80;
+  }
+
+  .card-highlight {
+    @apply backdrop-blur-xl rounded-3xl border border-teal-100/50 shadow-glass
+    transition-all duration-300;
+    background: linear-gradient(135deg, rgba(240,253,250,0.8) 0%, rgba(250,245,255,0.6) 100%);
+  }
+
+  .card-solid {
+    @apply bg-white rounded-3xl border border-gray-100 shadow-sm
+    transition-all duration-300;
+  }
+
+  /* ==========================================
+     INPUTS - Liquid Glass
+     ========================================== */
+  .input-field {
+    @apply w-full rounded-2xl border border-white/50 bg-white/50 backdrop-blur-lg px-4 py-3.5
+    text-sm text-gray-900 placeholder:text-gray-400
+    focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 focus:bg-white/70
+    transition-all duration-200 shadow-glass;
+  }
+
+  /* ==========================================
+     BADGES
+     ========================================== */
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1
+    text-xs font-medium;
+  }
+
+  .badge-teal {
+    @apply badge bg-teal-100/70 text-teal-700 backdrop-blur-sm;
+  }
+
+  .badge-success {
+    @apply badge bg-sage-100/70 text-sage-700 backdrop-blur-sm;
+  }
+
+  .badge-warning {
+    @apply badge bg-peach-100/70 text-peach-700 backdrop-blur-sm;
+  }
+
+  .badge-lilac {
+    @apply badge bg-lilac-100/70 text-lilac-700 backdrop-blur-sm;
+  }
+
+  /* ==========================================
+     NAVEGACAO MOBILE - Liquid Glass
+     ========================================== */
+  .mobile-nav {
+    @apply fixed bottom-0 left-0 right-0 z-50
+    bg-white/70 backdrop-blur-2xl border-t border-white/40 shadow-glass
+    px-2 pb-[env(safe-area-inset-bottom)] pt-2;
+  }
+
+  /* ==========================================
+     PAGINA E SECOES
+     ========================================== */
+  .page-container {
+    @apply min-h-screen pb-24 px-4 pt-4 max-w-lg mx-auto;
+  }
+
+  .section-title {
+    @apply font-display text-xl font-bold text-gray-900;
+  }
+
+  /* ==========================================
+     HABITOS - Checkmarks
+     ========================================== */
+  .habit-check {
+    @apply w-7 h-7 rounded-xl border-2 border-gray-300
+    flex items-center justify-center
+    transition-all duration-300 ease-out
+    cursor-pointer;
+  }
+
+  .habit-check-done {
+    @apply habit-check border-teal-500 bg-teal-500 text-white scale-110;
+  }
+
+  .habit-check-partial {
+    @apply habit-check border-peach-400 bg-peach-400 text-white;
+  }
+
+  .progress-ring {
+    @apply relative inline-flex items-center justify-center;
+  }
+
+  /* ==========================================
+     CONFETTI - Animacao de celebracao
+     ========================================== */
+  .confetti-container {
+    @apply fixed inset-0 pointer-events-none z-[100] overflow-hidden;
+  }
+
+  .confetti-piece {
+    @apply absolute w-3 h-3 rounded-sm;
+    animation: confetti-fall 1.5s ease-out forwards;
+  }
+
+  @keyframes confetti-fall {
+    0% {
+      transform: translateY(-100vh) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+}
+
+@layer utilities {
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
